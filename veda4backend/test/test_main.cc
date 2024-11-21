@@ -9,7 +9,7 @@ DROGON_TEST(BasicTest)
 
 int main(int argc, char** argv) 
 {
-    // jenkins test
+    // jenkins test2
     using namespace drogon;
 
     std::promise<void> p1;
