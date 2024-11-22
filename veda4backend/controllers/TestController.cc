@@ -6,6 +6,6 @@ void TestController::asyncHandleHttpRequest(const HttpRequestPtr& req, std::func
     auto resp=HttpResponse::newHttpResponse();
     resp->setStatusCode(k200OK);
     resp->setContentTypeCode(CT_TEXT_HTML);
-    resp->setBody("re-test jenkins controller Test");
+    resp->setBody("final jenkins controller Test");
     callback(resp);
 }
