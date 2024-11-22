@@ -20,11 +20,13 @@ public:
 void TestController::asyncHandleHttpRequest(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback)
 {
     // write your application logic here
-    std::shared_ptr<Json::Value> values = req->getJsonObject();
-
-
+    //
     try {
-        std::cout << "values" <<  (*values)["id"].asString()<< std::endl;
+        std::shared_ptr<Json::Value> values = req->getJsonObject();
+        if (!values || values->isNull()) {
+            throw std::runtime_error("Invalid JSON object: values is null or not provided");
+        }
+        // std::cout << "values" <<  (*values)["id"].asString()<< std::endl;
         Test t(values);
         Json::Value response;
         response["code"] = 200;
@@ -43,6 +45,7 @@ void TestController::asyncHandleHttpRequest(const HttpRequestPtr& req, std::func
         resp->setBody("An Error Occured");
         callback(resp);
     }
+
 
 
 
