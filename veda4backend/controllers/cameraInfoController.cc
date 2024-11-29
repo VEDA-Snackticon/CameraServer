@@ -53,7 +53,7 @@ void cameraInfoController::asyncHandleHttpRequest(const HttpRequestPtr& req, std
         }
 
         auto response = HttpResponse::newHttpResponse();
-        response->setBody("test");
+        response->setBody("register success");
         callback(response);
     }
     catch (...) {
