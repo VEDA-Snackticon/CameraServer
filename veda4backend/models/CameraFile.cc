@@ -17,6 +17,7 @@ const std::string CameraFile::Cols::_id = "id";
 const std::string CameraFile::Cols::_transaction_id = "transaction_id";
 const std::string CameraFile::Cols::_file_name = "file_name";
 const std::string CameraFile::Cols::_cam_id = "cam_id";
+const std::string CameraFile::Cols::_path = "path";
 const std::string CameraFile::primaryKeyName = "id";
 const bool CameraFile::hasPrimaryKey = true;
 const std::string CameraFile::tableName = "camera_file";
@@ -25,7 +26,8 @@ const std::vector<typename CameraFile::MetaData> CameraFile::metaData_={
 {"id","int32_t","int",4,1,1,1},
 {"transaction_id","std::string","char(36)",0,0,0,0},
 {"file_name","std::string","varchar(255)",255,0,0,0},
-{"cam_id","int64_t","bigint",8,0,0,0}
+{"cam_id","int64_t","bigint",8,0,0,0},
+{"path","std::string","varchar(255)",255,0,0,1}
 };
 const std::string &CameraFile::getColumnName(size_t index) noexcept(false)
 {
@@ -52,11 +54,15 @@ CameraFile::CameraFile(const Row &r, const ssize_t indexOffset) noexcept
         {
             camId_=std::make_shared<int64_t>(r["cam_id"].as<int64_t>());
         }
+        if(!r["path"].isNull())
+        {
+            path_=std::make_shared<std::string>(r["path"].as<std::string>());
+        }
     }
     else
     {
         size_t offset = (size_t)indexOffset;
-        if(offset + 4 > r.size())
+        if(offset + 5 > r.size())
         {
             LOG_FATAL << "Invalid SQL result for this model";
             return;
@@ -82,13 +88,18 @@ CameraFile::CameraFile(const Row &r, const ssize_t indexOffset) noexcept
         {
             camId_=std::make_shared<int64_t>(r[index].as<int64_t>());
         }
+        index = offset + 4;
+        if(!r[index].isNull())
+        {
+            path_=std::make_shared<std::string>(r[index].as<std::string>());
+        }
     }
 
 }
 
 CameraFile::CameraFile(const Json::Value &pJson, const std::vector<std::string> &pMasqueradingVector) noexcept(false)
 {
-    if(pMasqueradingVector.size() != 4)
+    if(pMasqueradingVector.size() != 5)
     {
         LOG_ERROR << "Bad masquerading vector";
         return;
@@ -123,6 +134,14 @@ CameraFile::CameraFile(const Json::Value &pJson, const std::vector<std::string> 
         if(!pJson[pMasqueradingVector[3]].isNull())
         {
             camId_=std::make_shared<int64_t>((int64_t)pJson[pMasqueradingVector[3]].asInt64());
+        }
+    }
+    if(!pMasqueradingVector[4].empty() && pJson.isMember(pMasqueradingVector[4]))
+    {
+        dirtyFlag_[4] = true;
+        if(!pJson[pMasqueradingVector[4]].isNull())
+        {
+            path_=std::make_shared<std::string>(pJson[pMasqueradingVector[4]].asString());
         }
     }
 }
@@ -161,12 +180,20 @@ CameraFile::CameraFile(const Json::Value &pJson) noexcept(false)
             camId_=std::make_shared<int64_t>((int64_t)pJson["cam_id"].asInt64());
         }
     }
+    if(pJson.isMember("path"))
+    {
+        dirtyFlag_[4]=true;
+        if(!pJson["path"].isNull())
+        {
+            path_=std::make_shared<std::string>(pJson["path"].asString());
+        }
+    }
 }
 
 void CameraFile::updateByMasqueradedJson(const Json::Value &pJson,
                                             const std::vector<std::string> &pMasqueradingVector) noexcept(false)
 {
-    if(pMasqueradingVector.size() != 4)
+    if(pMasqueradingVector.size() != 5)
     {
         LOG_ERROR << "Bad masquerading vector";
         return;
@@ -202,6 +229,14 @@ void CameraFile::updateByMasqueradedJson(const Json::Value &pJson,
             camId_=std::make_shared<int64_t>((int64_t)pJson[pMasqueradingVector[3]].asInt64());
         }
     }
+    if(!pMasqueradingVector[4].empty() && pJson.isMember(pMasqueradingVector[4]))
+    {
+        dirtyFlag_[4] = true;
+        if(!pJson[pMasqueradingVector[4]].isNull())
+        {
+            path_=std::make_shared<std::string>(pJson[pMasqueradingVector[4]].asString());
+        }
+    }
 }
 
 void CameraFile::updateByJson(const Json::Value &pJson) noexcept(false)
@@ -235,6 +270,14 @@ void CameraFile::updateByJson(const Json::Value &pJson) noexcept(false)
         if(!pJson["cam_id"].isNull())
         {
             camId_=std::make_shared<int64_t>((int64_t)pJson["cam_id"].asInt64());
+        }
+    }
+    if(pJson.isMember("path"))
+    {
+        dirtyFlag_[4] = true;
+        if(!pJson["path"].isNull())
+        {
+            path_=std::make_shared<std::string>(pJson["path"].asString());
         }
     }
 }
@@ -337,6 +380,28 @@ void CameraFile::setCamIdToNull() noexcept
     dirtyFlag_[3] = true;
 }
 
+const std::string &CameraFile::getValueOfPath() const noexcept
+{
+    static const std::string defaultValue = std::string();
+    if(path_)
+        return *path_;
+    return defaultValue;
+}
+const std::shared_ptr<std::string> &CameraFile::getPath() const noexcept
+{
+    return path_;
+}
+void CameraFile::setPath(const std::string &pPath) noexcept
+{
+    path_ = std::make_shared<std::string>(pPath);
+    dirtyFlag_[4] = true;
+}
+void CameraFile::setPath(std::string &&pPath) noexcept
+{
+    path_ = std::make_shared<std::string>(std::move(pPath));
+    dirtyFlag_[4] = true;
+}
+
 void CameraFile::updateId(const uint64_t id)
 {
     id_ = std::make_shared<int32_t>(static_cast<int32_t>(id));
@@ -347,7 +412,8 @@ const std::vector<std::string> &CameraFile::insertColumns() noexcept
     static const std::vector<std::string> inCols={
         "transaction_id",
         "file_name",
-        "cam_id"
+        "cam_id",
+        "path"
     };
     return inCols;
 }
@@ -387,6 +453,17 @@ void CameraFile::outputArgs(drogon::orm::internal::SqlBinder &binder) const
             binder << nullptr;
         }
     }
+    if(dirtyFlag_[4])
+    {
+        if(getPath())
+        {
+            binder << getValueOfPath();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
 }
 
 const std::vector<std::string> CameraFile::updateColumns() const
@@ -403,6 +480,10 @@ const std::vector<std::string> CameraFile::updateColumns() const
     if(dirtyFlag_[3])
     {
         ret.push_back(getColumnName(3));
+    }
+    if(dirtyFlag_[4])
+    {
+        ret.push_back(getColumnName(4));
     }
     return ret;
 }
@@ -436,6 +517,17 @@ void CameraFile::updateArgs(drogon::orm::internal::SqlBinder &binder) const
         if(getCamId())
         {
             binder << getValueOfCamId();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
+    if(dirtyFlag_[4])
+    {
+        if(getPath())
+        {
+            binder << getValueOfPath();
         }
         else
         {
@@ -478,6 +570,14 @@ Json::Value CameraFile::toJson() const
     {
         ret["cam_id"]=Json::Value();
     }
+    if(getPath())
+    {
+        ret["path"]=getValueOfPath();
+    }
+    else
+    {
+        ret["path"]=Json::Value();
+    }
     return ret;
 }
 
@@ -485,7 +585,7 @@ Json::Value CameraFile::toMasqueradedJson(
     const std::vector<std::string> &pMasqueradingVector) const
 {
     Json::Value ret;
-    if(pMasqueradingVector.size() == 4)
+    if(pMasqueradingVector.size() == 5)
     {
         if(!pMasqueradingVector[0].empty())
         {
@@ -531,6 +631,17 @@ Json::Value CameraFile::toMasqueradedJson(
                 ret[pMasqueradingVector[3]]=Json::Value();
             }
         }
+        if(!pMasqueradingVector[4].empty())
+        {
+            if(getPath())
+            {
+                ret[pMasqueradingVector[4]]=getValueOfPath();
+            }
+            else
+            {
+                ret[pMasqueradingVector[4]]=Json::Value();
+            }
+        }
         return ret;
     }
     LOG_ERROR << "Masquerade failed";
@@ -566,6 +677,14 @@ Json::Value CameraFile::toMasqueradedJson(
     {
         ret["cam_id"]=Json::Value();
     }
+    if(getPath())
+    {
+        ret["path"]=getValueOfPath();
+    }
+    else
+    {
+        ret["path"]=Json::Value();
+    }
     return ret;
 }
 
@@ -591,13 +710,23 @@ bool CameraFile::validateJsonForCreation(const Json::Value &pJson, std::string &
         if(!validJsonOfField(3, "cam_id", pJson["cam_id"], err, true))
             return false;
     }
+    if(pJson.isMember("path"))
+    {
+        if(!validJsonOfField(4, "path", pJson["path"], err, true))
+            return false;
+    }
+    else
+    {
+        err="The path column cannot be null";
+        return false;
+    }
     return true;
 }
 bool CameraFile::validateMasqueradedJsonForCreation(const Json::Value &pJson,
                                                     const std::vector<std::string> &pMasqueradingVector,
                                                     std::string &err)
 {
-    if(pMasqueradingVector.size() != 4)
+    if(pMasqueradingVector.size() != 5)
     {
         err = "Bad masquerading vector";
         return false;
@@ -635,6 +764,19 @@ bool CameraFile::validateMasqueradedJsonForCreation(const Json::Value &pJson,
                   return false;
           }
       }
+      if(!pMasqueradingVector[4].empty())
+      {
+          if(pJson.isMember(pMasqueradingVector[4]))
+          {
+              if(!validJsonOfField(4, pMasqueradingVector[4], pJson[pMasqueradingVector[4]], err, true))
+                  return false;
+          }
+        else
+        {
+            err="The " + pMasqueradingVector[4] + " column cannot be null";
+            return false;
+        }
+      }
     }
     catch(const Json::LogicError &e)
     {
@@ -670,13 +812,18 @@ bool CameraFile::validateJsonForUpdate(const Json::Value &pJson, std::string &er
         if(!validJsonOfField(3, "cam_id", pJson["cam_id"], err, false))
             return false;
     }
+    if(pJson.isMember("path"))
+    {
+        if(!validJsonOfField(4, "path", pJson["path"], err, false))
+            return false;
+    }
     return true;
 }
 bool CameraFile::validateMasqueradedJsonForUpdate(const Json::Value &pJson,
                                                   const std::vector<std::string> &pMasqueradingVector,
                                                   std::string &err)
 {
-    if(pMasqueradingVector.size() != 4)
+    if(pMasqueradingVector.size() != 5)
     {
         err = "Bad masquerading vector";
         return false;
@@ -705,6 +852,11 @@ bool CameraFile::validateMasqueradedJsonForUpdate(const Json::Value &pJson,
       if(!pMasqueradingVector[3].empty() && pJson.isMember(pMasqueradingVector[3]))
       {
           if(!validJsonOfField(3, pMasqueradingVector[3], pJson[pMasqueradingVector[3]], err, false))
+              return false;
+      }
+      if(!pMasqueradingVector[4].empty() && pJson.isMember(pMasqueradingVector[4]))
+      {
+          if(!validJsonOfField(4, pMasqueradingVector[4], pJson[pMasqueradingVector[4]], err, false))
               return false;
       }
     }
@@ -780,6 +932,26 @@ bool CameraFile::validJsonOfField(size_t index,
                 err="Type error in the "+fieldName+" field";
                 return false;
             }
+            break;
+        case 4:
+            if(pJson.isNull())
+            {
+                err="The " + fieldName + " column cannot be null";
+                return false;
+            }
+            if(!pJson.isString())
+            {
+                err="Type error in the "+fieldName+" field";
+                return false;
+            }
+            if(pJson.isString() && std::strlen(pJson.asCString()) > 255)
+            {
+                err="String length exceeds limit for the " +
+                    fieldName +
+                    " field (the maximum value is 255)";
+                return false;
+            }
+
             break;
         default:
             err="Internal error in the server";
