@@ -119,6 +119,7 @@ void cameraFileController::asyncHandleHttpRequest(const HttpRequestPtr& req, std
             response->setStatusCode(k400BadRequest);
             response->setBody("No cameraEvents found.");
             callback(response);
+            return;
         }
         // transaction이 실제로 있다면 어떤 카메라가 보낸 요청인지 찾는다.
         orm::Mapper<drogon_model::veda4::Camera> cameraMapper(client);
@@ -128,6 +129,7 @@ void cameraFileController::asyncHandleHttpRequest(const HttpRequestPtr& req, std
             response->setStatusCode(k400BadRequest);
             response->setBody("cannot find event Camera.");
             callback(response);
+            return;
         }
 
         // 찾아낸 카메라 번호를 가져온다.
