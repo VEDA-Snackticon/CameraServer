@@ -28,7 +28,7 @@ void cameraInfoController::insertCameraEntity(std::string ip, orm::Mapper<drogon
     mapper.insert(camera,[](const drogon_model::veda4::Camera & result){}, [](const orm::DrogonDbException &exception){});
 }
 
-bool cameraInfoController::isAlreadyInserted(std::__1::vector<drogon_model::veda4::Camera> foundCamera) {
+bool cameraInfoController::isAlreadyInserted(std::vector<drogon_model::veda4::Camera> foundCamera) {
     return foundCamera.size() != 0;
 }
 
