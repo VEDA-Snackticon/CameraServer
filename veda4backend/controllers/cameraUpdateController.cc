@@ -20,10 +20,7 @@ void cameraUpdateController::asyncHandleHttpRequest(const HttpRequestPtr& req, s
             updatedCamera.setGroupNumber((*json)["groupNumber"].asInt());
         }
         if (json->isMember("isMaster")) {
-            updatedCamera.setIsMaster((*json)["location"].asBool());
-        }
-        if (json->isMember("isActive")) {
-            updatedCamera.setGroupNumber((*json)["groupNumber"].asInt());
+            updatedCamera.setIsMaster((*json)["isMaster"].asBool());
         }
 
         //
@@ -65,6 +62,7 @@ void cameraUpdateController::asyncHandleHttpRequest(const HttpRequestPtr& req, s
     }
     catch (std::exception &e) {
         std::shared_ptr<drogon::HttpResponse> response = HttpResponse::newHttpResponse();
+        response->setStatusCode(k404NotFound);
         response->setBody(e.what());
         callback(response);
     }
