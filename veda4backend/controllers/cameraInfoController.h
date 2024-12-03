@@ -20,7 +20,7 @@ class cameraInfoController : public drogon::HttpSimpleController<cameraInfoContr
     void insertCameraEntity(std::string ip,
                             orm::Mapper<drogon_model::veda4::Camera> &mapper, std::string description, drogon_model::veda4::Camera &camera);
 
-    bool isAlreadyInserted(std::__1::vector<drogon_model::veda4::Camera> foundCamera);
+    bool isAlreadyInserted(std::vector<drogon_model::veda4::Camera> foundCamera);
 
     void asyncHandleHttpRequest(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback) override;
     PATH_LIST_BEGIN
