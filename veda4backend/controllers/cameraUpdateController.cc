@@ -1,6 +1,7 @@
 #include "cameraUpdateController.h"
 
 #include <Camera.h>
+#include <CameraProcess.h>
 
 void cameraUpdateController::asyncHandleHttpRequest(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback)
 {
@@ -24,7 +25,38 @@ void cameraUpdateController::asyncHandleHttpRequest(const HttpRequestPtr& req, s
         if (json->isMember("isActive")) {
             updatedCamera.setGroupNumber((*json)["groupNumber"].asInt());
         }
-        cameraMapper.update(updatedCamera,[](long result){},[](const orm::DrogonDbException){std::cout << "error updating"<< std::endl;});
+
+        //
+
+        if (json->isMember("processes"))
+        {
+            const auto &processes = (*json)["processes"];
+            if (!processes.isArray())
+            {
+                throw std::runtime_error("Processes must be an array");
+            }
+
+            orm::Mapper<drogon_model::veda4::CameraProcess> cameraProcessMapper(db_client);
+
+            if (!processes.empty())
+            {
+                for (const auto &processName : processes)
+                {
+                    if (!processName.isString())
+                    {
+                        throw std::runtime_error("Invalid process name");
+                    }
+
+                    drogon_model::veda4::CameraProcess newProcess;
+                    newProcess.setCameraId(updatedCamera.getValueOfId());
+                    newProcess.setProcessName(processName.asString());
+                    cameraProcessMapper.insert(newProcess);
+                }
+            }
+            cameraMapper.update(updatedCamera,[](long result){},[](const orm::DrogonDbException){std::cout << "error updating"<< std::endl;});
+        }
+
+
 
         auto http_response = HttpResponse::newHttpResponse();
         http_response->setBody("succes ");
