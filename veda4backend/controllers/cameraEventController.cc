@@ -54,7 +54,7 @@ void cameraEventController::asyncHandleHttpRequest(const HttpRequestPtr& req, st
         // 마스터 카메라가 아니면 처리하지 않음
         if (!(*camera.getIsMaster())) throw std::runtime_error("No camera is master");
         // 들어온 description 에 해당되는 카메라가 groupId설정이 되어있지 않아도 예외 반환
-        if ((*camera.getGroupNumber()) ==0) { throw std::runtime_error("No camera is group 0");}
+        if ((*camera.getGroupNumber()) ==0) { throw std::runtime_error("No camera group number");}
 
 
         // 해당하는 카메라의 groupid가 있다면 해당 groupid 카메라의 ip에 요청 전송
