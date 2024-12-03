@@ -41,6 +41,9 @@ void cameraInfoController::asyncHandleHttpRequest(const HttpRequestPtr& req, std
         check_json_data(values);
         std::string description =  (*values)["description"].asString();
 
+        if (description.empty()){ throw std::runtime_error("No description"); }
+
+
         std::vector<drogon_model::veda4::Camera> foundCamera = mapper.findBy(orm::Criteria(drogon_model::veda4::Camera::Cols::_description,orm::CompareOperator::EQ,description));
 
         drogon_model::veda4::Camera camera;
