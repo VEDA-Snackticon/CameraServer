@@ -41,7 +41,7 @@ void cameraInfoController::asyncHandleHttpRequest(const HttpRequestPtr& req, std
         check_json_data(values);
         std::string description =  (*values)["description"].asString();
 
-        std::__1::vector<drogon_model::veda4::Camera> foundCamera = mapper.findBy(orm::Criteria(drogon_model::veda4::Camera::Cols::_description,orm::CompareOperator::EQ,description));
+        std::vector<drogon_model::veda4::Camera> foundCamera = mapper.findBy(orm::Criteria(drogon_model::veda4::Camera::Cols::_description,orm::CompareOperator::EQ,description));
 
         drogon_model::veda4::Camera camera;
         if(isAlreadyInserted(foundCamera)) {
@@ -56,7 +56,7 @@ void cameraInfoController::asyncHandleHttpRequest(const HttpRequestPtr& req, std
         response->setBody("register success");
         callback(response);
     }
-    catch (...) {
+    catch (std::exception &e) {
         auto response_ptr = HttpResponse::newHttpResponse();
         response_ptr->addHeader("Content-Type", "application/json");
         response_ptr->addHeader("Access-Control-Allow-Origin", "*");
