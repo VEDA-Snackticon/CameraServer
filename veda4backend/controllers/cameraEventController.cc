@@ -47,7 +47,7 @@ void cameraEventController::asyncHandleHttpRequest(const HttpRequestPtr& req, st
         // 들어온 description 에 해당하는 카메라가 없으면 예외 반환
         orm::Mapper<drogon_model::veda4::Camera> mapper(db_client);
 
-        std::__1::vector<drogon_model::veda4::Camera> cameras = mapper.findBy(orm::Criteria(drogon_model::veda4::Camera::Cols::_description, orm::CompareOperator::EQ, description));
+        std::vector<drogon_model::veda4::Camera> cameras = mapper.findBy(orm::Criteria(drogon_model::veda4::Camera::Cols::_description, orm::CompareOperator::EQ, description));
         if (cameras.size() == 0) { throw std::runtime_error("No cameras"); }
         drogon_model::veda4::Camera camera = cameras[0];
 
