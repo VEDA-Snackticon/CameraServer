@@ -11,6 +11,6 @@ class cameraEventController : public drogon::HttpSimpleController<cameraEventCon
     PATH_LIST_BEGIN
     // list path definitions here;
     // PATH_ADD("/path", "filter1", "filter2", HttpMethod1, HttpMethod2...);
-    PATH_ADD("/event",Get);
+    PATH_ADD("/event",Post);
     PATH_LIST_END
 };
