@@ -9,17 +9,17 @@
 
 void clean() {
     auto dbClient = app().getDbClient();
+    dbClient->execSqlSync("DELETE FROM camera_event");
     dbClient->execSqlSync("DELETE FROM camera_process");
     dbClient->execSqlSync("DELETE FROM camera_file");
-    dbClient->execSqlSync("DELETE FROM camera_event");
     dbClient->execSqlSync("DELETE FROM camera");
 
 }
 
 void clean(std::shared_ptr<drogon::orm::Transaction> dbClient) {
+    dbClient->execSqlSync("DELETE FROM camera_event");
     dbClient->execSqlSync("DELETE FROM camera_process");
     dbClient->execSqlSync("DELETE FROM camera_file");
-    dbClient->execSqlSync("DELETE FROM camera_event");
     dbClient->execSqlSync("DELETE FROM camera");
 
 }
@@ -54,13 +54,9 @@ DROGON_TEST(updateTest) {
     request->setMethod(Patch);
     request->setPath("/cameraInfo");
     std::shared_ptr<drogon::HttpClient> client = drogon::HttpClient::newHttpClient("127.0.0.1", 5555, false);
-    client->sendRequest(request,[TEST_CTX](const drogon::ReqResult& result, const drogon::HttpResponsePtr& resp) {
-        REQUIRE(result == drogon::ReqResult::Ok);
-        CHECK(resp->getBody() == "success");
-        clean();
-    });
-
-
+    std::pair<drogon::ReqResult, HttpResponsePtr> response = client->sendRequest(request);
+    CHECK(response.second->getBody() == "success");
+    CHECK(response.first == drogon::ReqResult::Ok);
 }
 
 DROGON_TEST(updateUnitTest) {
@@ -93,6 +89,7 @@ DROGON_TEST(updateUnitTest) {
 
     CHECK(*tempCamera.getGroupNumber() == 88);
     CHECK(*tempCamera.getIsMaster() == false);
+
 
 }
 

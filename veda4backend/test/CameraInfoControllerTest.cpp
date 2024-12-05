@@ -16,10 +16,9 @@ DROGON_TEST(DescriptionTest) {
     request->setMethod(drogon::Post);
     request->setPath("/setup");
     std::shared_ptr<drogon::HttpClient> client = drogon::HttpClient::newHttpClient("127.0.0.1", 5555, false);
-    client->sendRequest(request,[TEST_CTX](const drogon::ReqResult& result, const drogon::HttpResponsePtr& resp) {
-        REQUIRE(result == drogon::ReqResult::Ok);
-        CHECK(resp->getBody() == "register success");
-    });
+    std::pair<drogon::ReqResult, HttpResponsePtr> response = client->sendRequest(request);
+    CHECK(response.first == drogon::ReqResult::Ok);
+    CHECK(response.second->getBody() == "register success");
 }
 
 
