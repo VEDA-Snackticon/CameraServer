@@ -43,7 +43,7 @@ void cameraEventController::asyncHandleHttpRequest(const HttpRequestPtr& req, st
         trantor::Date eventTime = string_to_trantor_date(localtime_str);
 
 
-        auto db_client = app().getDbClient();
+        auto db_client = app().getDbClient()->newTransaction();
         // 들어온 description 에 해당하는 카메라가 없으면 예외 반환
         orm::Mapper<drogon_model::veda4::Camera> mapper(db_client);
 
@@ -72,31 +72,27 @@ void cameraEventController::asyncHandleHttpRequest(const HttpRequestPtr& req, st
         camera_event.setEventCameraId(camera.getValueOfId());
         orm::Mapper<drogon_model::veda4::CameraEvent> cameraEventMapper(db_client);
 
-        cameraEventMapper.insert(camera_event,[](const drogon_model::veda4::CameraEvent& event) {}, [](const orm::DrogonDbException){});
+        cameraEventMapper.insert(camera_event);
 
 
 
-        for (int i =0; i<cameras.size(); i++) {
-            drogon_model::veda4::Camera camera = cameras[i];
-
-            std::shared_ptr<drogon::HttpClient> client = HttpClient::newHttpClient(*camera.getIpAddr(),8000,false);
-            std:: cout << *camera.getIpAddr()+"/helloWorld" << std::endl;
-            Json::Value requestJson;
-            requestJson["transcationId"] = transaction_id;
-            requestJson["localtime"] = (*values)["localtime"];
-            requestJson["unixTime"] = (*values)["unixTime"];
-            std::shared_ptr<drogon::HttpRequest> request = HttpRequest::newHttpJsonRequest(requestJson);
-            request->setBody("testMessage");
-            request->setPath("/event");
-            client->sendRequest(request,[](ReqResult,std::shared_ptr<drogon::HttpResponse> response) {
-                std::cout << response->body()<< std::endl;;
-            });
-
-        }
-
-
-
-
+        // for (int i =0; i<cameras.size(); i++) {
+        //     drogon_model::veda4::Camera camera = cameras[i];
+        //
+        //     std::shared_ptr<drogon::HttpClient> client = HttpClient::newHttpClient(*camera.getIpAddr(),8000,false);
+        //     std:: cout << *camera.getIpAddr()+"/helloWorld" << std::endl;
+        //     Json::Value requestJson;
+        //     requestJson["transcationId"] = transaction_id;
+        //     requestJson["localtime"] = (*values)["localtime"];
+        //     requestJson["unixTime"] = (*values)["unixTime"];
+        //     std::shared_ptr<drogon::HttpRequest> request = HttpRequest::newHttpJsonRequest(requestJson);
+        //     request->setBody("testMessage");
+        //     request->setPath("/event");
+        //     client->sendRequest(request,[](ReqResult,std::shared_ptr<drogon::HttpResponse> response) {
+        //         std::cout << response->body()<< std::endl;;
+        //     });
+        //
+        // }
 
         auto response = HttpResponse::newHttpResponse();
         response->setBody("success");
