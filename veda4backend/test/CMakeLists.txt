@@ -11,6 +11,8 @@ file(GLOB SRC_FILES
 
 add_executable(${PROJECT_NAME} test_main.cc
         CameraInfoControllerTest.cpp
+        CameraUpdateControllerTest.cpp
+        CameraEventControllerTest.cpp
 )
 message(${SRC_FILES})
 target_include_directories(${PROJECT_NAME}
