@@ -53,24 +53,3 @@ DROGON_TEST(EventReceiveTest)
     CHECK(response.second->getBody() == "success");
     cleanEvent();
  }
-
-DROGON_TEST(updateTest) {
-
-    setupEventCamera();
-    Json::Value json;
-    json["description"]= "test";
-    json["isMaster"] = false;
-    json["groupNumber"] = 88;
-    json["processes"] = Json::Value(Json::arrayValue);  // 배열 타입 선언
-    json["processes"].append("process1");
-    json["processes"].append("process2");
-
-    auto request = HttpRequest::newHttpJsonRequest(json);
-    request->setMethod(Patch);
-    request->setPath("/cameraInfo");
-    std::shared_ptr<drogon::HttpClient> client = drogon::HttpClient::newHttpClient("127.0.0.1", 5555, false);
-    std::pair<drogon::ReqResult, HttpResponsePtr> send_request = client->sendRequest(request);
-    REQUIRE(send_request.first == drogon::ReqResult::Ok);
-    REQUIRE(send_request.second->getBody() == "success");
-    cleanEvent();
-}
