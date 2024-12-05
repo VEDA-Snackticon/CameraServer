@@ -17,7 +17,8 @@ class cameraUpdateController : public drogon::HttpSimpleController<cameraUpdateC
     drogon_model::veda4::Camera setMasterSlave(std::shared_ptr<Json::Value> json,
                                                drogon_model::veda4::Camera updatedCamera);
 
-    void handleCameraProcess(std::shared_ptr<Json::Value> json, drogon_model::veda4::Camera updatedCamera);
+    void handleCameraProcess(std::shared_ptr<Json::Value> json, drogon_model::veda4::Camera updatedCamera, std::shared_ptr<drogon::orm::Transaction>
+                             transaction);
 
     void updateCamera(drogon_model::veda4::Camera updatedCamera, std::shared_ptr<drogon::orm::Transaction> transaction);
 

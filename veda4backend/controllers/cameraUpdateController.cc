@@ -31,8 +31,8 @@ drogon_model::veda4::Camera cameraUpdateController::setMasterSlave(std::shared_p
     return updatedCamera;
 }
 
-void cameraUpdateController::handleCameraProcess(std::shared_ptr<Json::Value> json, drogon_model::veda4::Camera updatedCamera) {
-    auto db_client = app().getDbClient();
+void cameraUpdateController::handleCameraProcess(std::shared_ptr<Json::Value> json, drogon_model::veda4::Camera updatedCamera, std::shared_ptr<drogon::orm::Transaction> transaction ) {
+
     if (json->isMember("processes"))
     {
         const auto &processes = (*json)["processes"];
@@ -43,6 +43,7 @@ void cameraUpdateController::handleCameraProcess(std::shared_ptr<Json::Value> js
 
         orm::Mapper<drogon_model::veda4::CameraProcess> cameraProcessMapper(db_client);
 
+        orm::Mapper<drogon_model::veda4::CameraProcess> cameraProcessMapper(transaction);
         if (!processes.empty())
         {
             for (const auto &processName : processes)
@@ -51,7 +52,6 @@ void cameraUpdateController::handleCameraProcess(std::shared_ptr<Json::Value> js
                 {
                     throw std::runtime_error("Invalid process name");
                 }
-
                 drogon_model::veda4::CameraProcess newProcess;
                 newProcess.setCameraId(updatedCamera.getValueOfId());
                 newProcess.setProcessName(processName.asString());
@@ -78,7 +78,7 @@ void cameraUpdateController::asyncHandleHttpRequest(const HttpRequestPtr& req, s
 
         updatedCamera =setGroupNumber(json, updatedCamera);
         updatedCamera = setMasterSlave(json, updatedCamera);
-        handleCameraProcess(json, updatedCamera);
+        handleCameraProcess(json, updatedCamera, transaction);
         updateCamera(updatedCamera, transaction);
 
         auto http_response = HttpResponse::newHttpResponse();
