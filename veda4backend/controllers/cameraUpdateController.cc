@@ -41,9 +41,8 @@ void cameraUpdateController::handleCameraProcess(std::shared_ptr<Json::Value> js
             throw std::runtime_error("Processes must be an array");
         }
 
-        orm::Mapper<drogon_model::veda4::CameraProcess> cameraProcessMapper(db_client);
-
         orm::Mapper<drogon_model::veda4::CameraProcess> cameraProcessMapper(transaction);
+        transaction->execSqlSync("DELETE FROM camera_process WHERE camera_id = ?", updatedCamera.getValueOfId());
         if (!processes.empty())
         {
             for (const auto &processName : processes)
