@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
+add_compile_options(-finput-charset=UTF-8 -fexec-charset=UTF-8)
+
 project(Veda4Backend CXX)
 
 include(CheckIncludeFileCXX)
