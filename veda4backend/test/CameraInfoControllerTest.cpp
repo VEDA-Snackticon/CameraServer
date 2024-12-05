@@ -8,7 +8,7 @@
 //
 
 
-DROGON_TEST(Description을_보내면_응답한다) {
+DROGON_TEST(DescriptionTest) {
 
     Json::Value json;
     json["description"]= "testDescription";

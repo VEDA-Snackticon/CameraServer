@@ -38,7 +38,7 @@ drogon_model::veda4::Camera setupCamera() {
     return camera;
 }
 
-DROGON_TEST(올바른_업데이트는_성공적으로_처리된다) {
+DROGON_TEST(updateTest) {
 
     setupCamera();
 
@@ -63,7 +63,7 @@ DROGON_TEST(올바른_업데이트는_성공적으로_처리된다) {
 
 }
 
-DROGON_TEST(카메라가_성공적으로_업데이트된다) {
+DROGON_TEST(updateUnitTest) {
     clean();
 
 
@@ -96,7 +96,7 @@ DROGON_TEST(카메라가_성공적으로_업데이트된다) {
 
 }
 
-DROGON_TEST(그룹넘버가_올바르게_설정된다) {
+DROGON_TEST(groupNumberUnitTest) {
 
     cameraUpdateController updateController;
     std::shared_ptr<Json::Value> json = std::make_shared<Json::Value>();
@@ -108,7 +108,7 @@ DROGON_TEST(그룹넘버가_올바르게_설정된다) {
     CHECK(*group_number.getGroupNumber() == 99);
 }
 
-DROGON_TEST(process는_올바르게_수정된다) {
+DROGON_TEST(processTest) {
     auto transaction = app().getDbClient()->newTransaction();
     drogon_model::veda4::Camera  updatedCamera = setupCamera();
 

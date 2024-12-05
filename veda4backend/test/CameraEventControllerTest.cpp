@@ -4,7 +4,7 @@
 //
 
 
-DROGON_TEST(이벤트를_보내면_응답을_받는다) {
+DROGON_TEST(EventReceiveTest) {
 
 
 
