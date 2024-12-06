@@ -3,6 +3,7 @@
 #include <drogon/HttpClient.h>
 
 #include "Camera.h"
+#include "controllers/cameraEventController.h"
 //
 // Created by lee on 2024. 12. 5
 //
@@ -53,3 +54,30 @@ DROGON_TEST(EventReceiveTest)
     CHECK(response.second->getBody() == "success");
     cleanEvent();
  }
+
+DROGON_TEST(DateTimeTransiTionTest) {
+    // 올바르게 date가 trantor::Date로 변환되는지 확인한다.
+    std::shared_ptr<Json::Value> json = std::make_shared<Json::Value>();
+    (*json)["description"]= "test";
+    (*json)["localtime"] = "2024-10-22 18:27:12";
+    (*json)["unixtime"] = 1701577082;
+
+    cameraEventController eventController;
+    trantor::Date translate_date = eventController.translateDate(json);
+    CHECK(translate_date.toDbString() == "2024-10-22 18:27:12");
+}
+
+DROGON_TEST(DescriptionCheckTest) {
+    // description 자체가 없으면 예외를 반환한다.
+
+    std::shared_ptr<Json::Value> json = std::make_shared<Json::Value>();
+    (*json)["description"]= "";
+    (*json)["localtime"] = "2024-10-22 18:27:12";
+    (*json)["unixtime"] = 1701577082;
+
+    cameraEventController eventController;
+    // 예외가 발생하는지 확인
+    CHECK_THROWS_AS(eventController.checkDescription(json), std::runtime_error);
+}
+
+
