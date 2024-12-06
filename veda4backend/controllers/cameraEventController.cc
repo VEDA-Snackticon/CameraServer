@@ -21,6 +21,59 @@ trantor::Date string_to_trantor_date(const std::string &time_str)
     return trantor::Date::fromDbString(time_str);
 }
 
+std::string cameraEventController::checkDescription(std::shared_ptr<Json::Value> values) {
+    std::string description = (*values)["description"].asString();
+    // description 자체가 없으면 예외반환
+    if (description == "") { throw std::runtime_error("No description"); }
+    return description;
+}
+
+trantor::Date cameraEventController::translateDate(std::shared_ptr<Json::Value> values) {
+    std::string localtime_str =  (*values)["localtime"].asString();
+    // 시간을 trantor::Date로 변환
+    return string_to_trantor_date(localtime_str);
+}
+
+drogon_model::veda4::Camera cameraEventController::findCameraByDescription(
+    std::string description, std::shared_ptr<drogon::orm::Transaction> transaction) {
+    orm::Mapper<drogon_model::veda4::Camera> mapper(transaction);
+    std::vector<drogon_model::veda4::Camera> cameras = mapper.findBy(orm::Criteria(drogon_model::veda4::Camera::Cols::_description, orm::CompareOperator::EQ, description));
+    if (cameras.size() == 0) { throw std::runtime_error("No cameras"); }
+    return cameras[0];
+}
+
+void cameraEventController::checkSendingPolicy(drogon_model::veda4::Camera camera) {
+    // 마스터 카메라가 아니면 처리하지 않음
+    if (!(*camera.getIsMaster())) throw std::runtime_error("No camera is master");
+    // 들어온 description 에 해당되는 카메라가 groupId설정이 되어있지 않아도 예외 반환
+    if ((*camera.getGroupNumber()) ==0) { throw std::runtime_error("No camera group number");}
+}
+
+std::vector<drogon_model::veda4::Camera> cameraEventController::findCamerasByGroupNumber(
+    drogon_model::veda4::Camera camera, std::shared_ptr<drogon::orm::Transaction> transaction) {
+    orm::Mapper<drogon_model::veda4::Camera> mapper(transaction);
+    // 해당하는 카메라의 groupid가 있다면 해당 groupid 카메라의 ip에 요청 전송
+    std::vector<drogon_model::veda4::Camera> groupCameras = mapper.findBy(orm::Criteria(drogon_model::veda4::Camera::Cols::_group_number, orm::CompareOperator::EQ, (*camera.getGroupNumber())));
+    if (groupCameras.size() == 0) { throw std::runtime_error("No cameras"); }
+    return groupCameras;
+
+}
+
+std::string cameraEventController::saveCameraEvent(std::shared_ptr<orm::Transaction> db_client,
+                                                   drogon_model::veda4::Camera camera) {
+    trantor::Date eventTime;
+    drogon_model::veda4::CameraEvent  camera_event;
+    boost::uuids::random_generator gen;
+    boost::uuids::uuid uuid = gen();  // 랜덤 UUID 생성
+    std::string transaction_id = boost::uuids::to_string(boost::uuids::random_generator()());
+    camera_event.setTransactionId(to_string(uuid));
+    camera_event.setTime(eventTime);
+    camera_event.setEventCameraId(camera.getValueOfId());
+    orm::Mapper<drogon_model::veda4::CameraEvent> cameraEventMapper(db_client);
+    cameraEventMapper.insert(camera_event);
+    return transaction_id;
+}
+
 void cameraEventController::asyncHandleHttpRequest(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback)
 {
     // write your application logic here
@@ -32,67 +85,36 @@ void cameraEventController::asyncHandleHttpRequest(const HttpRequestPtr& req, st
             throw std::runtime_error("No data");
         }
 
-        std::string description = (*values)["description"].asString();
-        // description 자체가 없으면 예외반환
-        if (description == "") { throw std::runtime_error("No description"); }
-
-
-        std::string localtime_str =  (*values)["localtime"].asString();
-
-        // 시간을 trantor::Date로 변환
-        trantor::Date eventTime = string_to_trantor_date(localtime_str);
+        std::string description = checkDescription(values);
+        trantor::Date eventTime = translateDate(values);
 
 
         auto db_client = app().getDbClient()->newTransaction();
         // 들어온 description 에 해당하는 카메라가 없으면 예외 반환
         orm::Mapper<drogon_model::veda4::Camera> mapper(db_client);
 
-        std::vector<drogon_model::veda4::Camera> cameras = mapper.findBy(orm::Criteria(drogon_model::veda4::Camera::Cols::_description, orm::CompareOperator::EQ, description));
-        if (cameras.size() == 0) { throw std::runtime_error("No cameras"); }
-        drogon_model::veda4::Camera camera = cameras[0];
+        drogon_model::veda4::Camera eventCamera = findCameraByDescription(description, db_client);
+        checkSendingPolicy(eventCamera);
 
-        // 마스터 카메라가 아니면 처리하지 않음
-        if (!(*camera.getIsMaster())) throw std::runtime_error("No camera is master");
-        // 들어온 description 에 해당되는 카메라가 groupId설정이 되어있지 않아도 예외 반환
-        if ((*camera.getGroupNumber()) ==0) { throw std::runtime_error("No camera group number");}
+        std::vector<drogon_model::veda4::Camera> cameraSendList = findCamerasByGroupNumber(eventCamera, db_client);
+        std::string transaction_id = saveCameraEvent(db_client, eventCamera);
 
+        for (int i =0; i<cameraSendList.size(); i++) {
+            drogon_model::veda4::Camera camera = cameraSendList[i];
 
-        // 해당하는 카메라의 groupid가 있다면 해당 groupid 카메라의 ip에 요청 전송
-        std::vector<drogon_model::veda4::Camera> groupCameras = mapper.findBy(orm::Criteria(drogon_model::veda4::Camera::Cols::_group_number, orm::CompareOperator::EQ, (*camera.getGroupNumber())));
-        if (cameras.size() == 0) { throw std::runtime_error("No cameras"); }
-
-
-
-        drogon_model::veda4::CameraEvent  camera_event;
-        boost::uuids::random_generator gen;
-        boost::uuids::uuid uuid = gen();  // 랜덤 UUID 생성
-        std::string transaction_id = boost::uuids::to_string(boost::uuids::random_generator()());
-        camera_event.setTransactionId(to_string(uuid));
-        camera_event.setTime(eventTime);
-        camera_event.setEventCameraId(camera.getValueOfId());
-        orm::Mapper<drogon_model::veda4::CameraEvent> cameraEventMapper(db_client);
-
-        cameraEventMapper.insert(camera_event);
-
-
-
-        // for (int i =0; i<cameras.size(); i++) {
-        //     drogon_model::veda4::Camera camera = cameras[i];
-        //
-        //     std::shared_ptr<drogon::HttpClient> client = HttpClient::newHttpClient(*camera.getIpAddr(),8000,false);
-        //     std:: cout << *camera.getIpAddr()+"/helloWorld" << std::endl;
-        //     Json::Value requestJson;
-        //     requestJson["transcationId"] = transaction_id;
-        //     requestJson["localtime"] = (*values)["localtime"];
-        //     requestJson["unixTime"] = (*values)["unixTime"];
-        //     std::shared_ptr<drogon::HttpRequest> request = HttpRequest::newHttpJsonRequest(requestJson);
-        //     request->setBody("testMessage");
-        //     request->setPath("/event");
-        //     client->sendRequest(request,[](ReqResult,std::shared_ptr<drogon::HttpResponse> response) {
-        //         std::cout << response->body()<< std::endl;;
-        //     });
-        //
-        // }
+            std::shared_ptr<drogon::HttpClient> client = HttpClient::newHttpClient(*camera.getIpAddr(),8000,false);
+            std:: cout << *camera.getIpAddr()+"/helloWorld" << std::endl;
+            Json::Value requestJson;
+            requestJson["transcationId"] = transaction_id;
+            requestJson["localtime"] = (*values)["localtime"];
+            requestJson["unixTime"] = (*values)["unixTime"];
+            std::shared_ptr<drogon::HttpRequest> request = HttpRequest::newHttpJsonRequest(requestJson);
+            request->setBody("testMessage");
+            request->setPath("/event");
+            std::cout << "prepare" << std::endl;
+            client->sendRequest(request);
+            std::cout << "success" << std::endl;
+        }
 
         auto response = HttpResponse::newHttpResponse();
         response->setBody("success");

@@ -2,11 +2,29 @@
 
 #include <drogon/HttpSimpleController.h>
 
+#include "Camera.h"
+
 using namespace drogon;
 
 class cameraEventController : public drogon::HttpSimpleController<cameraEventController>
 {
   public:
+    std::string checkDescription(std::shared_ptr<Json::Value> values);
+
+    trantor::Date translateDate(std::shared_ptr<Json::Value> values);
+
+    template<class>
+    void findCameraByDescription(std::string description, class transaction);
+
+    drogon_model::veda4::Camera findCameraByDescription(std::string description, std::shared_ptr<drogon::orm::Transaction> transaction);
+
+    void checkSendingPolicy(drogon_model::veda4::Camera camera);
+
+    std::vector<drogon_model::veda4::Camera> findCamerasByGroupNumber(drogon_model::veda4::Camera camera, std::shared_ptr<drogon::orm::Transaction>
+                                                                      transaction);
+
+    std::string saveCameraEvent(std::shared_ptr<orm::Transaction> db_client, drogon_model::veda4::Camera camera);
+
     void asyncHandleHttpRequest(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback) override;
     PATH_LIST_BEGIN
     // list path definitions here;
