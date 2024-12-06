@@ -50,7 +50,7 @@ void cameraProgramController::asyncHandleHttpRequest(const HttpRequestPtr& req, 
         if (description.empty()) {
             auto response = HttpResponse::newHttpResponse();
             response->setStatusCode(k400BadRequest);
-            response->setBody("name is missing.");
+            response->setBody("description is missing.");
             callback(response);
             return;
         }
