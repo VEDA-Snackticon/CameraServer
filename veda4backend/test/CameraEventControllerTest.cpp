@@ -1,3 +1,5 @@
+#include <boost/uuid/random_generator.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <drogon/drogon_test.h>
 #include <controllers/TestController.h>
 #include <drogon/HttpClient.h>
@@ -78,6 +80,26 @@ DROGON_TEST(DescriptionCheckTest) {
     cameraEventController eventController;
     // 예외가 발생하는지 확인
     CHECK_THROWS_AS(eventController.checkDescription(json), std::runtime_error);
+}
+DROGON_TEST(eventSendTest) {
+    // 다른 장비로 올바르게 요청이 나가는지 확인한다.
+    setupEventCamera();
+    boost::uuids::random_generator gen;
+    boost::uuids::uuid uuid = gen();  // 랜덤 UUID 생성
+    std::string transaction_id = boost::uuids::to_string(boost::uuids::random_generator()());
+
+    std::shared_ptr<Json::Value> json = std::make_shared<Json::Value>();
+    (*json)["description"]= "test";
+    (*json)["localtime"] = "2024-10-22 18:27:12";
+    (*json)["unixtime"] = 1701577082;
+
+    cameraEventController eventController;
+    auto transaction = app().getDbClient()->newTransaction();
+    drogon_model::veda4::Camera camera = eventController.findCameraByDescription("test",transaction);
+    camera.setIpAddr("https://85736fea-88ea-40bc-bfdc-b04627023da8.mock.pstmn.io");
+    eventController.sendEventTo(json,HttpClient::newHttpClient(camera.getValueOfIpAddr()),transaction_id);
+
+
 }
 
 
