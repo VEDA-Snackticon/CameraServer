@@ -60,8 +60,7 @@ std::vector<drogon_model::veda4::Camera> cameraEventController::findCamerasByGro
 }
 
 std::string cameraEventController::saveCameraEvent(std::shared_ptr<orm::Transaction> db_client,
-                                                   drogon_model::veda4::Camera camera) {
-    trantor::Date eventTime;
+                                                   drogon_model::veda4::Camera camera, trantor::Date eventTime) {
     drogon_model::veda4::CameraEvent  camera_event;
     boost::uuids::random_generator gen;
     boost::uuids::uuid uuid = gen();  // 랜덤 UUID 생성
@@ -107,7 +106,7 @@ void cameraEventController::asyncHandleHttpRequest(const HttpRequestPtr& req, st
 
         drogon_model::veda4::Camera eventCamera = findCameraByDescription(description, db_client);
         checkSendingPolicy(eventCamera);
-        std::string transaction_id = saveCameraEvent(db_client, eventCamera);
+        std::string transaction_id = saveCameraEvent(db_client, eventCamera, eventTime);
 
 
         std::vector<drogon_model::veda4::Camera> cameraSendList = findCamerasByGroupNumber(eventCamera, db_client);

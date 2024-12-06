@@ -24,7 +24,7 @@ class cameraEventController : public drogon::HttpSimpleController<cameraEventCon
     std::vector<drogon_model::veda4::Camera> findCamerasByGroupNumber(drogon_model::veda4::Camera camera, std::shared_ptr<drogon::orm::Transaction>
                                                                       transaction);
 
-    std::string saveCameraEvent(std::shared_ptr<orm::Transaction> db_client, drogon_model::veda4::Camera camera);
+    std::string saveCameraEvent(std::shared_ptr<orm::Transaction> db_client, drogon_model::veda4::Camera camera, trantor::Date eventTime);
 
     void sendEventTo(std::shared_ptr<Json::Value> values, std::shared_ptr<drogon::HttpClient> client, std::string transaction_id);
 
