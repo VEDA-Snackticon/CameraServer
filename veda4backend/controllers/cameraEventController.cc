@@ -74,6 +74,19 @@ std::string cameraEventController::saveCameraEvent(std::shared_ptr<orm::Transact
     return transaction_id;
 }
 
+void cameraEventController::sendEventTo(std::shared_ptr<Json::Value> values, std::shared_ptr<drogon::HttpClient> client ,std::string transaction_id) {
+
+    std::shared_ptr<drogon::HttpRequest> request = HttpRequest::newHttpRequest();
+    request->addHeader("transactionId", transaction_id);
+    request->addHeader("time",(*values)["unixTime"].asString());
+    request->setPath("/event");
+    request->setMethod(Post);
+    std::cout << "prepare" << std::endl;
+    std::cout << client->getHost() << std::endl;
+    client->sendRequest(request);
+    std::cout << "success" << std::endl;
+}
+
 void cameraEventController::asyncHandleHttpRequest(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback)
 {
     // write your application logic here
@@ -88,32 +101,18 @@ void cameraEventController::asyncHandleHttpRequest(const HttpRequestPtr& req, st
         std::string description = checkDescription(values);
         trantor::Date eventTime = translateDate(values);
 
-
         auto db_client = app().getDbClient()->newTransaction();
         // 들어온 description 에 해당하는 카메라가 없으면 예외 반환
         orm::Mapper<drogon_model::veda4::Camera> mapper(db_client);
 
         drogon_model::veda4::Camera eventCamera = findCameraByDescription(description, db_client);
         checkSendingPolicy(eventCamera);
-
-        std::vector<drogon_model::veda4::Camera> cameraSendList = findCamerasByGroupNumber(eventCamera, db_client);
         std::string transaction_id = saveCameraEvent(db_client, eventCamera);
 
-        for (int i =0; i<cameraSendList.size(); i++) {
-            drogon_model::veda4::Camera camera = cameraSendList[i];
 
-            std::shared_ptr<drogon::HttpClient> client = HttpClient::newHttpClient(*camera.getIpAddr(),8000,false);
-            std:: cout << *camera.getIpAddr()+"/helloWorld" << std::endl;
-            Json::Value requestJson;
-            requestJson["transcationId"] = transaction_id;
-            requestJson["localtime"] = (*values)["localtime"];
-            requestJson["unixTime"] = (*values)["unixTime"];
-            std::shared_ptr<drogon::HttpRequest> request = HttpRequest::newHttpJsonRequest(requestJson);
-            request->setBody("testMessage");
-            request->setPath("/event");
-            std::cout << "prepare" << std::endl;
-            client->sendRequest(request);
-            std::cout << "success" << std::endl;
+        std::vector<drogon_model::veda4::Camera> cameraSendList = findCamerasByGroupNumber(eventCamera, db_client);
+        for (auto camera : cameraSendList) {
+            sendEventTo(values,HttpClient::newHttpClient(camera.getValueOfIpAddr(),8000,false),transaction_id);
         }
 
         auto response = HttpResponse::newHttpResponse();

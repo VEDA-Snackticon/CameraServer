@@ -1,5 +1,6 @@
 #pragma once
 
+#include <drogon/HttpClient.h>
 #include <drogon/HttpSimpleController.h>
 
 #include "Camera.h"
@@ -24,6 +25,8 @@ class cameraEventController : public drogon::HttpSimpleController<cameraEventCon
                                                                       transaction);
 
     std::string saveCameraEvent(std::shared_ptr<orm::Transaction> db_client, drogon_model::veda4::Camera camera);
+
+    void sendEventTo(std::shared_ptr<Json::Value> values, std::shared_ptr<drogon::HttpClient> client, std::string transaction_id);
 
     void asyncHandleHttpRequest(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback) override;
     PATH_LIST_BEGIN
