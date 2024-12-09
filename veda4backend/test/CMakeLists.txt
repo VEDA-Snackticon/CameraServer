@@ -13,6 +13,8 @@ add_executable(${PROJECT_NAME} test_main.cc
         CameraInfoControllerTest.cpp
         CameraUpdateControllerTest.cpp
         CameraEventControllerTest.cpp
+        CameraFileControllerTest.cpp
+        CameraProgramControllerTest.cpp
 )
 message(${SRC_FILES})
 target_include_directories(${PROJECT_NAME}
