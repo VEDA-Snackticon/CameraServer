@@ -81,8 +81,16 @@ void cameraEventController::sendEventTo(std::shared_ptr<Json::Value> values, std
     request->setPath("/event");
     request->setMethod(Post);
     std::cout << "prepare" << std::endl;
-    std::cout << client->getHost() << std::endl;
-    client->sendRequest(request);
+
+    client->sendRequest(
+        request,
+        [=](drogon::ReqResult result, const drogon::HttpResponsePtr &response) {
+            if (result == drogon::ReqResult::Ok) {
+                std::cout << "Response" << client->getHost() << "received: " << response->getBody() << std::endl;
+            } else {
+                std::cerr << "Request failed: " << drogon::to_string(result) << std::endl;
+            }
+        });
     std::cout << "success" << std::endl;
 }
 
@@ -111,9 +119,9 @@ void cameraEventController::asyncHandleHttpRequest(const HttpRequestPtr& req, st
 
         std::vector<drogon_model::veda4::Camera> cameraSendList = findCamerasByGroupNumber(eventCamera, db_client);
 
-        // for (auto camera : cameraSendList) {
-        //     sendEventTo(values,HttpClient::newHttpClient(camera.getValueOfIpAddr(),8000,false),transaction_id);
-        // }
+        for (auto camera : cameraSendList) {
+            sendEventTo(values,HttpClient::newHttpClient(camera.getValueOfIpAddr(),8000,false),transaction_id);
+        }
 
         auto response = HttpResponse::newHttpResponse();
         response->setBody("success");
