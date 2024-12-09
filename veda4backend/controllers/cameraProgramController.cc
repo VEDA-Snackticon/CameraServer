@@ -71,9 +71,9 @@ void cameraProgramController::asyncHandleHttpRequest(const HttpRequestPtr& req, 
         if(foundCamera.size() != 1) throw std::runtime_error("No camera found.");
         drogon_model::veda4::Camera camera = foundCamera[0];
 
-        auto client = HttpClient::newHttpClient("https://85736fea-88ea-40bc-bfdc-b04627023da8.mock.pstmn.io");
+       // auto client = HttpClient::newHttpClient("https://85736fea-88ea-40bc-bfdc-b04627023da8.mock.pstmn.io");
        // auto client = HttpClient::newHttpClient("http://snackticon.iptime.org");
-        // auto client = HttpClient::newHttpClient(camera.getIpAddr(),8000,false);
+       auto client = HttpClient::newHttpClient(camera.getValueOfIpAddr(),8000,false);
 
         std::vector<UploadFile> uploadFiles;
         for (const auto& file : files) {
@@ -123,8 +123,7 @@ void cameraProgramController::asyncHandleHttpRequest(const HttpRequestPtr& req, 
         request->setParameter("fps",fps);
         request->setParameter("name",name);
         request->setPath("/program");
-        std::pair<drogon::ReqResult, HttpResponsePtr> re = client->sendRequest(request);
-        std::cout << re.second->getBody() << std::endl;
+        client->sendRequest(request);
         // 성공 응답
         auto response = HttpResponse::newHttpResponse();
         response->setStatusCode(k200OK);
