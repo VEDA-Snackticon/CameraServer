@@ -106,8 +106,12 @@ void cameraEventController::asyncHandleHttpRequest(const HttpRequestPtr& req, st
         if (values == nullptr) {
             throw std::runtime_error("No data");
         }
-         std::cout << "initial Data : " << (*values)["unixTime"].asString() << std::endl;
 
+        std::string localtime_str =  (*values)["localtime"].asString();
+        trantor::Date trantor_date = string_to_trantor_date(localtime_str);
+        // 시간을 trantor::Date로 변환
+        std::cout << "initial Data : " << (*values)["unixTime"].asString() << std::endl;
+        std::cout << "initial localTime" << trantor_date.toDbString() << std::endl;
         std::string description = checkDescription(values);
         trantor::Date eventTime = translateDate(values);
 
