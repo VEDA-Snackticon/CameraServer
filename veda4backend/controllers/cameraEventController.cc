@@ -76,8 +76,8 @@ std::string cameraEventController::saveCameraEvent(std::shared_ptr<orm::Transact
 void cameraEventController::sendEventTo(std::shared_ptr<Json::Value> values, std::shared_ptr<drogon::HttpClient> client ,std::string transaction_id) {
 
     std::shared_ptr<drogon::HttpRequest> request = HttpRequest::newHttpRequest();
-    request->addHeader("transactionId", transaction_id);
-    request->addHeader("event_time",(*values)["unixtime"].asString());
+    request->addHeader("transactionid", transaction_id);
+    request->addHeader("eventtime",(*values)["unixtime"].asString());
     std::cout << "unixtime : " << (*values)["unixtime"].asString() << std::endl;
     std::cout << "unixTimeIntegar :" <<  (*values)["unixtime"].asInt64() << std::endl;
     request->setPath("/event");
