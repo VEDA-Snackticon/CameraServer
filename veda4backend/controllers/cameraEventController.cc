@@ -105,6 +105,7 @@ void cameraEventController::asyncHandleHttpRequest(const HttpRequestPtr& req, st
         if (values == nullptr) {
             throw std::runtime_error("No data");
         }
+         std::cout << "initial Data : " << (*values)["unixTime"].asString() << std::endl;
 
         std::string description = checkDescription(values);
         trantor::Date eventTime = translateDate(values);
