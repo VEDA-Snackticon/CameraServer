@@ -140,6 +140,7 @@ std::string cameraFileController::saveFile(std::string transactionId, std::strin
 bool cameraFileController::checkTransactionEventReallyExist(std::function<void(const HttpResponsePtr &)> &&callback, std::string transactionId,std::shared_ptr<orm::Transaction> transaction) {
     //실제 transcation이 있는 건지 확인한다.
     orm::Mapper<drogon_model::veda4::CameraEvent> cameraEventMapper(transaction);
+    std::cout << "before query : " << transactionId << std::endl;
     std::vector<drogon_model::veda4::CameraEvent> camera_events = cameraEventMapper.findBy(orm::Criteria(drogon_model::veda4::CameraEvent::Cols::_transaction_id,orm::CompareOperator::EQ, transactionId));
     if (checkCameraEvent(std::move(callback), camera_events, transactionId)) return true;
     return false;
