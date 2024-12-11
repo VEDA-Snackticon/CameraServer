@@ -80,7 +80,7 @@ void cameraEventController::sendEventTo(std::shared_ptr<Json::Value> values, std
     request->addHeader("event_time",(*values)["unixTime"].asString());
     request->setPath("/event");
     request->setMethod(Post);
-    std::cout << "prepare" << std::endl;
+    std::cout << "prepare" << request->getHeader("transactionId") << " " << request->getHeader("event_time") << ": end" << std::endl;
 
     client->sendRequest(
         request,
