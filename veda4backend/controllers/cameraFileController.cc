@@ -154,6 +154,7 @@ void cameraFileController::asyncHandleHttpRequest(const HttpRequestPtr& req, std
         fileParser.parse(req);
         auto pairs = fileParser.getParameters();
         std::string transactionId = getTransactionId(pairs);
+        std::cout << "File Transaction ID: " << transactionId << std::endl;
         std::string description = getDescription(pairs);
         const auto& files = fileParser.getFiles();
         if (checkParameter(std::move(callback), transactionId, description,files )) return;
