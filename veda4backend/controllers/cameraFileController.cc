@@ -9,8 +9,8 @@
 #include <drogon/HttpResponse.h> // HttpResponse 헤더 추가
 
 std::string cameraFileController::getTransactionId(SafeStringMap<std::string> pairs) {
-    if(pairs.find("transactionId") != pairs.end()){
-        return pairs["transactionId"];
+    if(pairs.find("transactionid") != pairs.end()){
+        return pairs["transactionid"];
     }
     return "";
 }
