@@ -77,9 +77,9 @@ void cameraEventController::sendEventTo(std::shared_ptr<Json::Value> values, std
 
     std::shared_ptr<drogon::HttpRequest> request = HttpRequest::newHttpRequest();
     request->addHeader("transactionId", transaction_id);
-    request->addHeader("event_time",(*values)["unixTime"].asString());
-    std::cout << "unixTime : " << (*values)["unixTime"].asString() << std::endl;
-    std::cout << "unixTimeIntegar :" <<  (*values)["unixTime"].asInt64() << std::endl;
+    request->addHeader("event_time",(*values)["unixtime"].asString());
+    std::cout << "unixtime : " << (*values)["unixtime"].asString() << std::endl;
+    std::cout << "unixTimeIntegar :" <<  (*values)["unixtime"].asInt64() << std::endl;
     request->setPath("/event");
     request->setMethod(Post);
     std::cout << "prepare" << request->getHeader("transactionId") << " " << request->getHeader("event_time") << ": end" << std::endl;
@@ -110,7 +110,7 @@ void cameraEventController::asyncHandleHttpRequest(const HttpRequestPtr& req, st
         std::string localtime_str =  (*values)["localtime"].asString();
         trantor::Date trantor_date = string_to_trantor_date(localtime_str);
         // 시간을 trantor::Date로 변환
-        std::cout << "initial Data : " << (*values)["unixTime"].asString() << std::endl;
+        std::cout << "initial Data : " << (*values)["unixtime"].asString() << std::endl;
         std::cout << "initial localTime" << trantor_date.toDbString() << std::endl;
         std::string description = checkDescription(values);
         trantor::Date eventTime = translateDate(values);
@@ -127,7 +127,7 @@ void cameraEventController::asyncHandleHttpRequest(const HttpRequestPtr& req, st
         std::vector<drogon_model::veda4::Camera> cameraSendList = findCamerasByGroupNumber(eventCamera, db_client);
 
         for (auto camera : cameraSendList) {
-            std::cout << "before SendEvent : " << (*values)["unixTime"].asString() << std::endl;
+            std::cout << "before SendEvent : " << (*values)["unixtime"].asString() << std::endl;
             sendEventTo(values,HttpClient::newHttpClient(camera.getValueOfIpAddr(),8000,false),transaction_id);
         }
 
