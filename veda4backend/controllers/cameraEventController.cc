@@ -121,6 +121,7 @@ void cameraEventController::asyncHandleHttpRequest(const HttpRequestPtr& req, st
         std::vector<drogon_model::veda4::Camera> cameraSendList = findCamerasByGroupNumber(eventCamera, db_client);
 
         for (auto camera : cameraSendList) {
+            std::cout << "before SendEvent : " << (*values)["unixTime"].asString() << std::endl;
             sendEventTo(values,HttpClient::newHttpClient(camera.getValueOfIpAddr(),8000,false),transaction_id);
         }
 
