@@ -77,7 +77,7 @@ void cameraEventController::sendEventTo(std::shared_ptr<Json::Value> values, std
 
     std::shared_ptr<drogon::HttpRequest> request = HttpRequest::newHttpRequest();
     request->addHeader("transactionId", transaction_id);
-    request->addHeader("time",(*values)["unixTime"].asString());
+    request->addHeader("event_time",(*values)["unixTime"].asString());
     request->setPath("/event");
     request->setMethod(Post);
     std::cout << "prepare" << std::endl;
