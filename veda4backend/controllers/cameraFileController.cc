@@ -175,7 +175,7 @@ void cameraFileController::asyncHandleHttpRequest(const HttpRequestPtr& req, std
             std::string savedFilename = saveFile(transactionId, uploadPath, file);
             savedFiles.push_back(savedFilename);
         }
-
+        LOG_INFO << "File Size : " << savedFiles.size();
         if (checkSaveFiles(std::move(callback), savedFiles)) return;
         LOG_INFO << "checkSaveFiles Completed";
         if (checkTransactionEventReallyExist(std::move(callback), transactionId, transaction)) return;
