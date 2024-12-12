@@ -136,7 +136,7 @@ std::string cameraFileController::saveFile(std::string transactionId, std::strin
     // 파일 저장
     file.saveAs(savePath);
     LOG_INFO << "File saved to: " << savePath;
-    return fileName;
+    return savedFilename;
 }
 
 bool cameraFileController::checkTransactionEventReallyExist(std::function<void(const HttpResponsePtr &)> &&callback, std::string transactionId,std::shared_ptr<orm::Transaction> transaction) {
