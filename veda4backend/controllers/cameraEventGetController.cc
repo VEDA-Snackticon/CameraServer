@@ -7,23 +7,48 @@
 void cameraEventGetController::asyncHandleHttpRequest(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback)
 {
     auto transcation = app().getDbClient()->newTransaction();
-    // write your application logic here
-    orm::Mapper<drogon_model::veda4::CameraEvent> eventMapper(transcation);
+    // SQL 쿼리 작성: camera_event와 camera를 조인
+    std::string query = R"(
+    SELECT
+        camera_event.transaction_id,
+        camera_event.event_camera_id,
+        camera_event.time,
+        camera.description,
+        camera.is_alive,
+        camera.ip_addr
+    FROM
+        camera_event
+    LEFT JOIN
+        camera
+    ON
+        camera_event.event_camera_id = camera.id
+)";
 
-    std::vector<drogon_model::veda4::CameraEvent> camera_events = eventMapper.findAll();
+    transcation->execSqlAsync(query, [callback](const drogon::orm::Result &result) {
+        Json::Value json;
+        Json::Value eventsArray(Json::arrayValue);
 
+        // 쿼리 결과를 JSON으로 변환
+        for (const auto &row : result) {
+            Json::Value eventJson;
+            eventJson["transactionId"] = row["transaction_id"].as<std::string>();
+            eventJson["time"] = row["time"].as<std::string>();
+            eventJson["description"] = row["description"].isNull() ? "" : row["description"].as<std::string>();
+            eventJson["ipAddr"] = row["ip_addr"].isNull() ? "" : row["ip_addr"].as<std::string>();
+            eventsArray.append(eventJson);
+        }
 
-    Json::Value json;
-    Json::Value cameraArray(Json::arrayValue);
-    for (const auto& event : camera_events) {
-        Json::Value cameraJson;
-        cameraJson["transactionId"] = event.getValueOfTransactionId();       // 예: ID 필드
-        cameraJson["camId"] = event.getValueOfEventCameraId(); // 예: IP 주소 필드
-        cameraJson["time"] = event.getValueOfTime().toDbString();
-        cameraArray.append(cameraJson);
-    }
-    json["events"] = cameraArray;
+        json["events"] = eventsArray;
+        // JSON 응답 반환
+        auto response = HttpResponse::newHttpJsonResponse(json);
+        callback(response);
 
-    auto response = HttpResponse::newHttpJsonResponse(json);
-    callback(response);
+    }, [callback](const orm::DrogonDbException &e) {
+        // 쿼리 실행 실패 시 에러 반환
+        auto response = HttpResponse::newHttpJsonResponse(Json::Value{
+            {"error", e.base().what()}
+        });
+        response->setStatusCode(drogon::k500InternalServerError);
+        callback(response);
+    });
 }
