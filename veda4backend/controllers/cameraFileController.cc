@@ -127,6 +127,8 @@ void cameraFileController::sendSuccessResponse(std::function<void(const HttpResp
 
 std::string cameraFileController::saveFile(std::string transactionId, std::string uploadPath,const HttpFile &file) {
     std::string fileName = file.getFileName();
+    std::cout << "File name: " << fileName << std::endl;
+    std::cout << "Transaction ID: " << transactionId << std::endl;
     std::string fileExtension = getFileExtension(std::filesystem::path(fileName).extension().string());
     logFile(file, fileExtension);
     std::string savePath = uploadPath + "/" + transactionId + "_" + file.getFileName();
@@ -155,7 +157,6 @@ void cameraFileController::asyncHandleHttpRequest(const HttpRequestPtr& req, std
         fileParser.parse(req);
         auto pairs = fileParser.getParameters();
         std::string transactionId = getTransactionId(pairs);
-        std::cout << "File Transaction ID: " << transactionId << std::endl;
         std::string description = getDescription(pairs);
         const auto& files = fileParser.getFiles();
         if (checkParameter(std::move(callback), transactionId, description,files )) return;
@@ -174,23 +175,37 @@ void cameraFileController::asyncHandleHttpRequest(const HttpRequestPtr& req, std
             std::string savedFilename = saveFile(transactionId, uploadPath, file);
             savedFiles.push_back(savedFilename);
         }
-        if (checkSaveFiles(std::move(callback), savedFiles)) return;
-        if (checkTransactionEventReallyExist(std::move(callback), transactionId, transaction)) return;
 
+        if (checkSaveFiles(std::move(callback), savedFiles)) return;
+        LOG_INFO << "checkSaveFiles Completed";
+        if (checkTransactionEventReallyExist(std::move(callback), transactionId, transaction)) return;
+        LOG_INFO << "checkTransactionEventReallyExist Completed";
         // transaction이 실제로 있다면 어떤 카메라가 보낸 요청인지 찾는다.
         orm::Mapper<drogon_model::veda4::Camera> cameraMapper(transaction);
+        LOG_INFO << "cameraMapper Completed";
         std::vector<drogon_model::veda4::Camera> foundCameras = cameraMapper.findBy(orm::Criteria(drogon_model::veda4::Camera::Cols::_description,orm::CompareOperator::EQ,description));
+        LOG_INFO << "foundCameras Completed";
         if (checkCamera(std::move(callback), foundCameras)) return;
         // 찾아낸 카메라 번호를 가져온다.
         int64_t foundCameraId = foundCameras[0].getValueOfId();
-
-        for (std::string savedFilename : savedFiles) {
+        LOG_INFO << "foundCameraId Completed";
+        for (std::string fileName : savedFiles) {
             // 카메라 파일 이름과 함께 파일에 저장한다.
-            drogon_model::veda4::CameraFile cameraFile = setCameraFile(transactionId, uploadPath, savedFilename, foundCameraId);
+            drogon_model::veda4::CameraFile cameraFile = setCameraFile(transactionId, uploadPath, fileName, foundCameraId);
+            std::cout << "cameraFile is Set FileName:" << cameraFile.getValueOfFileName() << std::endl;
+            std::cout << "cameraFile is Set Transaction ID: " << cameraFile.getValueOfTransactionId() << std::endl;
+            std::cout << "cameraFile is Set Path: " << cameraFile.getValueOfPath() << std::endl;
+            std::cout << "cameraFile is Set CamID: " << cameraFile.getValueOfCamId() << std::endl;
             orm::Mapper<drogon_model::veda4::CameraFile> cameraFileMapper(transaction);
-            cameraFileMapper.insert(cameraFile);
-        }
+            cameraFileMapper.insert(cameraFile,[](const drogon_model::veda4::CameraFile camera_file) {
 
+                LOG_INFO << "saved: " << camera_file.getValueOfFileName();
+                LOG_INFO << " camera file saved Successfully Id :  " << camera_file.getValueOfId();
+
+            },[](const orm::DrogonDbException & exception) {
+                LOG_INFO << "Failed to save CameraFile :" << exception.base().what() ;
+            });
+        }
         sendSuccessResponse(std::move(callback));
     } catch (const std::exception& e) {
         // 에러 처리
