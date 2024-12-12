@@ -3,17 +3,17 @@
 #include <filesystem>
 #include <drogon/drogon.h>
 
-ContentType getContentTypeByExtension(const std::string &filename) {
+ContentType getContentTypeByExtension(const std::string &filename)  {
     // 파일 확장자를 기반으로 MIME 타입 코드 설정
-    if (filename.ends_with(".mp4")) {
+    if (filename.size() >= 4 && filename.substr(filename.size() - 4) == ".mp4") {
         return CT_VIDEO_MP4;
-    } else if (filename.ends_with(".webm")) {
+    } else if (filename.size() >= 5 && filename.substr(filename.size() - 5) == ".webm") {
         return CT_VIDEO_WEBM;
-    } else if (filename.ends_with(".png")) {
+    } else if (filename.size() >= 4 && filename.substr(filename.size() - 4) == ".png") {
         return CT_IMAGE_PNG;
-    } else if (filename.ends_with(".txt")) {
+    } else if (filename.size() >= 4 && filename.substr(filename.size() - 4) == ".txt") {
         return CT_TEXT_PLAIN;
-    } else if (filename.ends_with(".html")) {
+    } else if (filename.size() >= 5 && filename.substr(filename.size() - 5) == ".html") {
         return CT_TEXT_HTML;
     } else {
         return CT_APPLICATION_OCTET_STREAM; // 기본값
