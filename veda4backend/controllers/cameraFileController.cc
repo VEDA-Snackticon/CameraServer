@@ -199,11 +199,11 @@ void cameraFileController::asyncHandleHttpRequest(const HttpRequestPtr& req, std
             orm::Mapper<drogon_model::veda4::CameraFile> cameraFileMapper(transaction);
             cameraFileMapper.insert(cameraFile,[](const drogon_model::veda4::CameraFile camera_file) {
 
-                LOG_INFO << "saved: " << camera_file.getValueOfFileName();
-                LOG_INFO << " camera file saved Successfully Id :  " << camera_file.getValueOfId();
+                LOG_INFO << "@@@@saved: " << camera_file.getValueOfFileName();
+                LOG_INFO << " @@@@camera file saved Successfully Id :  " << camera_file.getValueOfId();
 
             },[](const orm::DrogonDbException & exception) {
-                LOG_INFO << "Failed to save CameraFile :" << exception.base().what() ;
+                LOG_INFO << "@@@@Failed to save CameraFile :" << exception.base().what() ;
             });
         }
         sendSuccessResponse(std::move(callback));
