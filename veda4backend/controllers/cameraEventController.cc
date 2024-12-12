@@ -113,18 +113,19 @@ void cameraEventController::asyncHandleHttpRequest(const HttpRequestPtr& req, st
         std::cout << "initial localTime" << trantor_date.toDbString() << std::endl;
         std::string description = checkDescription(values);
         trantor::Date eventTime = translateDate(values);
+        std::vector<drogon_model::veda4::Camera> cameraSendList;
+        std::string transaction_id;
 
+        {
         auto db_client = app().getDbClient()->newTransaction();
         // 들어온 description 에 해당하는 카메라가 없으면 예외 반환
         orm::Mapper<drogon_model::veda4::Camera> mapper(db_client);
 
         drogon_model::veda4::Camera eventCamera = findCameraByDescription(description, db_client);
         checkSendingPolicy(eventCamera);
-        std::string transaction_id = saveCameraEvent(db_client, eventCamera, eventTime);
-
-
-        std::vector<drogon_model::veda4::Camera> cameraSendList = findCamerasByGroupNumber(eventCamera, db_client);
-
+        transaction_id= saveCameraEvent(db_client, eventCamera, eventTime);
+        cameraSendList = findCamerasByGroupNumber(eventCamera, db_client);
+        }
         for (auto camera : cameraSendList) {
             std::cout << "before SendEvent : " << (*values)["unixtime"].asString() << std::endl;
             sendEventTo(values,HttpClient::newHttpClient(camera.getValueOfIpAddr(),8000,false),transaction_id);
