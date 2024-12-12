@@ -144,7 +144,7 @@ bool cameraFileController::checkTransactionEventReallyExist(std::function<void(c
     orm::Mapper<drogon_model::veda4::CameraEvent> cameraEventMapper(transaction);
     std::cout << "before query : " << transactionId << std::endl;
     std::vector<drogon_model::veda4::CameraEvent> camera_events = cameraEventMapper.findBy(orm::Criteria(drogon_model::veda4::CameraEvent::Cols::_transaction_id,orm::CompareOperator::EQ, transactionId));
-    if (checkCameraEvent(std::move(callback), camera_events, transactionId)) return true;
+    //if (checkCameraEvent(std::move(callback), camera_events, transactionId)) return true;
     return false;
 }
 
